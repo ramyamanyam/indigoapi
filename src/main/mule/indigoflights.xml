@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	
+	
+	
+	<flow name="indigoflightsFlow" doc:id="d2ec72b4-4071-4f28-9f47-3374f7c005ab" >
+		<logger level="INFO" doc:name="Logger" doc:id="82cedd7b-df69-4bca-ab29-70f82a51ed3c" message="request recived from indigoflights......... #[attributes.queryParams]"/>
+		<http:request method="GET" doc:name="Request" doc:id="be0b9610-a358-40df-b745-cca8557dd0be" config-ref="HTTP_Request_configuration" path="/api/getFlights">
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	from : attributes.queryParams.source,
+	to : attributes.queryParams.destination,
+	depatureDate : attributes.queryParams.doj
+}]]]></http:query-params>
+		</http:request>
+		<logger level="INFO" doc:name="Logger" doc:id="e284ca0e-accc-4307-9e65-23479694d21a" message="responce from indigiflights........ #[payload]"/>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="de6ec558-6778-43cd-8b1e-c5771d86e5ad" >
+				<ee:transform doc:name="Transform Message" doc:id="50f13270-0ea6-40fe-ae81-cd477bb3f84b" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	Statuscode: 500,
+	Message: "Unable to process the request,please try again after some time."
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>
